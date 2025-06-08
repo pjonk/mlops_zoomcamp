@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import pickle
 from pathlib import Path
 
@@ -12,7 +9,7 @@ from sklearn.metrics import root_mean_squared_error
 
 import mlflow
 
-mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("nyc-taxi-experiment")
 
 models_folder = Path('models')
@@ -21,32 +18,34 @@ models_folder.mkdir(exist_ok=True)
 
 
 def read_dataframe(year, month):
-    url = f'https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_{year}-{month:02d}.parquet'
+    url = f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year}-{month:02d}.parquet'
     df = pd.read_parquet(url)
 
-    df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
-    df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
+    print(f'Total rows in raw data, {year}-{month:02d}: {len(df.index)}')
+    df['duration'] = df.tpep_dropoff_datetime - df.tpep_pickup_datetime
+    df.duration = df.duration.dt.total_seconds() / 60
 
     df = df[(df.duration >= 1) & (df.duration <= 60)]
 
     categorical = ['PULocationID', 'DOLocationID']
     df[categorical] = df[categorical].astype(str)
 
-    df['PU_DO'] = df['PULocationID'] + '_' + df['DOLocationID']
+    print(f'Total rows in transformed data, {year}-{month:02d}: {len(df.index)}')
 
     return df
 
 
 def create_X(df, dv=None):
-    categorical = ['PU_DO']
-    numerical = ['trip_distance']
-    dicts = df[categorical + numerical].to_dict(orient='records')
+
+    features = ['PULocationID', 'DOLocationID']
+    df[features] = df[features].astype(str)
+    train_dicts = df[features].to_dict(orient='records')
 
     if dv is None:
         dv = DictVectorizer(sparse=True)
-        X = dv.fit_transform(dicts)
+        X = dv.fit_transform(train_dicts)
     else:
-        X = dv.transform(dicts)
+        X = dv.transform(train_dicts)
 
     return X, dv
 
