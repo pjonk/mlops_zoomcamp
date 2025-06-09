@@ -343,12 +343,12 @@ services:
 
   mlflow:
     image: ghcr.io/mlflow/mlflow 
-    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlruns --host 0.0.0.0
+    command: mlflow server --backend-store-uri sqlite:////mlflow/mlflow.db --default-artifact-root /mlruns --host 0.0.0.0
     ports:
       - "5500:5000"
     volumes:
       - ./mlruns:/mlruns
-      - ./mlflow.db:/mlflow.db  
+      - ./mlflow:/mlflow  
     user: "50000:50000"
 
 volumes:
