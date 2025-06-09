@@ -9,6 +9,8 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import root_mean_squared_error
 
+import psutil
+
 
 models_folder = Path('models')
 models_folder.mkdir(exist_ok=True)
@@ -120,7 +122,6 @@ def duration_prediction_training_pipeline():
 
         mlflow.set_tracking_uri("http://mlflow:5000")
         mlflow.set_experiment("week-3-duration-prediction")
-        mlflow.autolog()
 
         # Load data from files
         X_train = joblib.load(paths['X_train_path'])
@@ -128,9 +129,15 @@ def duration_prediction_training_pipeline():
         X_val = joblib.load(paths['X_val_path'])
         y_val = joblib.load(paths['y_val_path'])
 
+        print(f"Available memory: {psutil.virtual_memory().available / (1024**2):.2f} MB")
+
         with mlflow.start_run() as run:
             lr = LinearRegression()
             lr.fit(X_train, y_train)
+
+            mlflow.log_params(lr.get_params())
+            mlflow.log_param("model_type", "LinearRegression")
+            mlflow.sklearn.log_model(lr, artifact_path="model")
 
             y_pred = lr.predict(X_train)
             print(f'intercept: {lr.intercept_}')
@@ -142,22 +149,22 @@ def duration_prediction_training_pipeline():
             val_rmse = root_mean_squared_error(y_val, y_pred)
             mlflow.log_metric('val_rmse', val_rmse)
 
-        return run.info.run_id
+        return {'run_id': run.info.run_id}
 
     @task
-    def load_model(run_id: str):
+    def load_model(run_info: dict):
         """ Store model in the mlflow registry. """
 
         import mlflow
         mlflow.set_tracking_uri("http://mlflow:5000")
 
-        mlflow.register_model(model_uri=f"runs:/{run_id}/model", name="linear_regression_model")
+        mlflow.register_model(model_uri=f"runs:/{run_info['run_id']}/model", name="linear_regression_model")
 
     
     # DAG
     paths= extract_data(2023, 3)
     prepared_data_paths = transform_data(paths['train_path'], paths['val_path'])
-    run_id = train_model(prepared_data_paths['X_train'])
+    run_id = train_model(prepared_data_paths)
     load_model(run_id)
 
 duration_prediction_training_pipeline()

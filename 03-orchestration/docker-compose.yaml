@@ -44,6 +44,8 @@
 #
 # Feel free to modify this file to suit your needs.
 ---
+version: "2.4"
+
 x-airflow-common:
   &airflow-common
   # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
@@ -79,6 +81,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/mlruns:/mlruns
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -166,6 +169,9 @@ services:
 
   airflow-worker:
     <<: *airflow-common
+    mem_limit: 6g
+    memswap_limit: 8g
+    cpus: 2
     command: celery worker
     healthcheck:
       # yamllint disable rule:line-length
@@ -295,6 +301,8 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: 'mlflow'
     user: "0:0"
+    volumes:
+      - ./mlruns:/mlruns
 
   airflow-cli:
     <<: *airflow-common
@@ -340,6 +348,8 @@ services:
       - "5500:5000"
     volumes:
       - ./mlruns:/mlruns
+      - ./mlflow.db:/mlflow.db  
+    user: "50000:50000"
 
 volumes:
   postgres-db-volume:
