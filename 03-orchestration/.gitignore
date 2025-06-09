@@ -2,3 +2,4 @@ config/
 mlflow/
 mlruns/
 plugins/
+logs/
