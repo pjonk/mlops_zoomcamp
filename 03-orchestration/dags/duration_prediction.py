@@ -2,15 +2,11 @@ from airflow.decorators import dag, task
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
-import numpy as np
 import joblib
 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import root_mean_squared_error
-
-import psutil
-
 
 models_folder = Path('models')
 models_folder.mkdir(exist_ok=True)
@@ -128,8 +124,6 @@ def duration_prediction_training_pipeline():
         y_train = joblib.load(paths['y_train_path'])
         X_val = joblib.load(paths['X_val_path'])
         y_val = joblib.load(paths['y_val_path'])
-
-        print(f"Available memory: {psutil.virtual_memory().available / (1024**2):.2f} MB")
 
         with mlflow.start_run() as run:
             lr = LinearRegression()
