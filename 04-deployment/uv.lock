@@ -14,6 +14,11 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+deployment = [
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "scikit-learn" },
+]
 dev = [
     { name = "ipykernel" },
 ]
@@ -27,6 +32,11 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+deployment = [
+    { name = "numpy", specifier = ">=2.3.0" },
+    { name = "pandas", specifier = ">=2.3.0" },
+    { name = "scikit-learn", specifier = ">=1.7.0" },
+]
 dev = [{ name = "ipykernel", specifier = ">=6.29.5" }]
 
 [[package]]

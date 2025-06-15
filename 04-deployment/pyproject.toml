@@ -12,6 +12,16 @@ dependencies = [
 ]
 
 [dependency-groups]
+deployment = [
+    "numpy>=2.3.0",
+    "pandas>=2.3.0",
+    "scikit-learn>=1.7.0",
+]
 dev = [
     "ipykernel>=6.29.5",
+]
+
+[tool.uv.workspace]
+members = [
+    "temp",
 ]
