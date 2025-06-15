@@ -7,4 +7,4 @@ COPY pipeline.py .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "pipeline.py", "--month", "05", "--year", "2023", "--model_path", './model2.bin', "--vectorizer_path", './dv.bin']
+ENTRYPOINT ["python", "pipeline.py"]
